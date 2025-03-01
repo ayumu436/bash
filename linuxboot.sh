@@ -1,21 +1,34 @@
 #!/bin/bash
 
+VERSION="1.0.0"
 LOG_FILE="/var/log/linuxoptimizer.log"
 
 log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOG_FILE"
 }
 
-# Function to check if running inside Docker
 is_docker() {
     [[ -f /.dockerenv ]]
 }
 
-# Function to clean junk files
-clean_junk() {
-    log "Starting junk file cleanup..."
+show_help() {
+    cat << EOF
+Linux System Optimizer - Pro Version
 
-    # Handle different package managers
+Usage:
+  linuxboot --clean              Clean junk files
+  linuxboot --optimize-ram       Optimize RAM
+  linuxboot --optimize-cpu       Optimize CPU
+  linuxboot --schedule enable    Enable scheduled optimization
+  linuxboot --schedule disable   Disable scheduled optimization
+  linuxboot --uninstall          Remove linuxboot and clean up
+  linuxboot --version            Show version
+  linuxboot --help               Show this help message
+EOF
+}
+
+clean_junk() {
+    log "Cleaning junk files..."
     if command -v pacman &>/dev/null; then
         sudo pacman -Sc --noconfirm
     elif command -v apt &>/dev/null; then
@@ -25,122 +38,94 @@ clean_junk() {
     elif command -v zypper &>/dev/null; then
         sudo zypper clean --all
     else
-        log "No supported package manager found. Skipping package cleanup."
+        log "No supported package manager found."
     fi
-
-    # Clean journal logs if `journalctl` exists
     if command -v journalctl &>/dev/null; then
         sudo journalctl --vacuum-time=7d
     else
         log "Skipping journal cleanup (journalctl not found)"
     fi
-
-    log "Junk file cleanup completed."
+    log "Junk cleanup completed."
 }
 
-# Function to optimize RAM
 optimize_ram() {
-    log "Optimizing RAM usage..."
-
+    log "Optimizing RAM..."
     if is_docker; then
-        log "Skipping RAM optimization (running inside Docker)"
+        log "Skipping RAM optimization (Docker detected)"
         return
     fi
-
     echo 3 | sudo tee /proc/sys/vm/drop_caches
-
     if swapon --summary | grep -q "swap"; then
         sudo swapoff -a && sudo swapon -a
     else
-        log "No swap file found, skipping swap optimization."
+        log "No swap found, skipping."
     fi
-
     log "RAM optimization completed."
 }
 
-# Function to optimize CPU
 optimize_cpu() {
-    log "Optimizing CPU usage..."
-
+    log "Optimizing CPU..."
     if is_docker; then
-        log "Skipping CPU optimization (running inside Docker)"
+        log "Skipping CPU optimization (Docker detected)"
         return
     fi
-
-    # Stop unnecessary services
-    SERVICES=("bluetooth.service" "cups.service" "avahi-daemon.service" "ModemManager.service")
-
-    for SERVICE in "${SERVICES[@]}"; do
-        if command -v systemctl &>/dev/null; then
-            if systemctl list-units --type=service --all | grep -q "$SERVICE"; then
-                sudo systemctl stop "$SERVICE"
-                log "Stopped $SERVICE"
-            else
-                log "Skipping $SERVICE (not installed)."
+    if command -v systemctl &>/dev/null; then
+        for service in bluetooth.service cups.service avahi-daemon.service ModemManager.service; do
+            if systemctl is-active --quiet "$service"; then
+                sudo systemctl stop "$service"
+                log "Stopped $service"
             fi
-        else
-            log "Skipping service optimizations (systemctl not found)"
-            break
-        fi
-    done
-
+        done
+    else
+        log "Skipping CPU optimization (systemctl not found)"
+    fi
     log "CPU optimization completed."
 }
 
-# Function to enable scheduled optimization
-enable_scheduled_optimization() {
+enable_schedule() {
     log "Enabling scheduled optimization..."
-    
     if is_docker; then
-        log "Skipping scheduled optimization (running inside Docker)"
+        log "Skipping scheduled optimization (Docker detected)"
         return
     fi
-
-    CRON_JOB="0 3 * * * /bin/bash $0 4"
-    (crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
+    (crontab -l 2>/dev/null; echo "0 3 * * * /usr/bin/linuxboot --clean") | crontab -
     log "Scheduled optimization enabled (Runs daily at 3 AM)."
 }
 
-# Function to disable scheduled optimization
-disable_scheduled_optimization() {
+disable_schedule() {
     log "Disabling scheduled optimization..."
-    
     if is_docker; then
-        log "Skipping scheduled optimization (running inside Docker)"
+        log "Skipping scheduled optimization (Docker detected)"
         return
     fi
-
-    crontab -l 2>/dev/null | grep -v "$0" | crontab -
+    crontab -l 2>/dev/null | grep -v '/usr/bin/linuxboot' | crontab -
     log "Scheduled optimization disabled."
 }
 
-# Main Menu
-while true; do
-    clear
-    echo "Linux System Optimizer - Pro Version"
-    echo "1. Clean Junk Files"
-    echo "2. Optimize RAM"
-    echo "3. Optimize CPU"
-    echo "4. Run All Optimizations"
-    echo "5. Enable Scheduled Optimization"
-    echo "6. Disable Scheduled Optimization"
-    echo "7. Exit"
-    read -p "Choose an option: " option
+uninstall() {
+    log "Uninstalling Linuxboot..."
+    sudo rm -f /usr/bin/linuxboot
+    sudo rm -f "$LOG_FILE"
+    crontab -l 2>/dev/null | grep -v '/usr/bin/linuxboot' | crontab -
+    log "Linuxboot has been uninstalled."
+}
 
-    case $option in
-        1) clean_junk ;;
-        2) optimize_ram ;;
-        3) optimize_cpu ;;
-        4)
-            clean_junk
-            optimize_ram
-            optimize_cpu
-            ;;
-        5) enable_scheduled_optimization ;;
-        6) disable_scheduled_optimization ;;
-        7) log "Exiting..."; exit 0 ;;
-        *) echo "Invalid option. Please select a valid number." ;;
-    esac
-
-    read -p "Press Enter to continue..."
-done
+case "$1" in
+    --clean) clean_junk ;;
+    --optimize-ram) optimize_ram ;;
+    --optimize-cpu) optimize_cpu ;;
+    --schedule)
+        case "$2" in
+            enable) enable_schedule ;;
+            disable) disable_schedule ;;
+            *) echo "Invalid schedule option. Use 'enable' or 'disable'." ;;
+        esac
+        ;;
+    --uninstall) uninstall ;;
+    --version) echo "Linux System Optimizer v$VERSION" ;;
+    --help) show_help ;;
+    *)
+        echo "Invalid option. Use --help for usage."
+        exit 1
+        ;;
+esac
