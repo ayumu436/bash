@@ -1,109 +1,123 @@
 #!/bin/bash
 
-# Linux System Optimizer - Pro Version
-# Author: Yoshiki
+LOG_FILE="/var/log/linuxoptimizer.log"
 
-LOG_FILE="/var/log/boostlinux.log"
-
-# Define colors
-RED="\e[31m"
-GREEN="\e[32m"
-YELLOW="\e[33m"
-CYAN="\e[36m"
-RESET="\e[0m"
-
-# Check for root privileges
-if [[ $EUID -ne 0 ]]; then
-    echo -e "${RED}Error: This script must be run as root.${RESET}"
-    exit 1
-fi
-
-# Function to log actions
-log_action() {
+log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOG_FILE"
 }
 
-# Function to check if a systemd service exists before disabling it
-disable_service() {
-    if systemctl list-units --type=service --all | grep -q "$1"; then
-        systemctl disable "$1"
-        log_action "Disabled $1 service."
-    else
-        log_action "Skipping $1 service (not installed)."
-    fi
+# Function to check if running inside Docker
+is_docker() {
+    [[ -f /.dockerenv ]]
 }
 
 # Function to clean junk files
 clean_junk() {
-    log_action "Starting junk file cleanup..."
-    echo -e "${YELLOW}Cleaning junk files...${RESET}"
+    log "Starting junk file cleanup..."
 
-    if command -v apt &>/dev/null; then
-        apt autoremove -y && apt autoclean -y
-    elif command -v pacman &>/dev/null; then
-        ORPHANS=$(pacman -Qdtq)
-        if [[ -n "$ORPHANS" ]]; then
-            pacman -Rns $ORPHANS --noconfirm
-        else
-            echo -e "${GREEN}No orphaned packages to remove.${RESET}"
-        fi
-        pacman -Sc --noconfirm
+    # Handle different package managers
+    if command -v pacman &>/dev/null; then
+        sudo pacman -Sc --noconfirm
+    elif command -v apt &>/dev/null; then
+        sudo apt autoremove -y && sudo apt clean
     elif command -v dnf &>/dev/null; then
-        dnf autoremove -y && dnf clean all
+        sudo dnf autoremove -y && sudo dnf clean all
     elif command -v zypper &>/dev/null; then
-        zypper clean --all
+        sudo zypper clean --all
+    else
+        log "No supported package manager found. Skipping package cleanup."
     fi
 
-    journalctl --vacuum-time=3d
+    # Clean journal logs if `journalctl` exists
+    if command -v journalctl &>/dev/null; then
+        sudo journalctl --vacuum-time=7d
+    else
+        log "Skipping journal cleanup (journalctl not found)"
+    fi
 
-    log_action "Junk file cleanup completed."
-    echo -e "${GREEN}Junk files cleaned successfully!${RESET}"
+    log "Junk file cleanup completed."
 }
 
 # Function to optimize RAM
 optimize_ram() {
-    log_action "Optimizing RAM..."
-    echo -e "${YELLOW}Optimizing RAM usage...${RESET}"
-    sync && echo 3 > /proc/sys/vm/drop_caches
-    swapoff -a && swapon -a
-    log_action "RAM optimization completed."
-    echo -e "${GREEN}RAM optimization complete!${RESET}"
+    log "Optimizing RAM usage..."
+
+    if is_docker; then
+        log "Skipping RAM optimization (running inside Docker)"
+        return
+    fi
+
+    echo 3 | sudo tee /proc/sys/vm/drop_caches
+
+    if swapon --summary | grep -q "swap"; then
+        sudo swapoff -a && sudo swapon -a
+    else
+        log "No swap file found, skipping swap optimization."
+    fi
+
+    log "RAM optimization completed."
 }
 
 # Function to optimize CPU
 optimize_cpu() {
-    log_action "Optimizing CPU..."
-    echo -e "${YELLOW}Optimizing CPU usage...${RESET}"
+    log "Optimizing CPU usage..."
 
-    disable_service "bluetooth.service"
-    disable_service "cups.service"
-    disable_service "avahi-daemon.service"
-    disable_service "ModemManager.service"
+    if is_docker; then
+        log "Skipping CPU optimization (running inside Docker)"
+        return
+    fi
 
-    log_action "CPU optimization completed."
-    echo -e "${GREEN}CPU optimization complete!${RESET}"
+    # Stop unnecessary services
+    SERVICES=("bluetooth.service" "cups.service" "avahi-daemon.service" "ModemManager.service")
+
+    for SERVICE in "${SERVICES[@]}"; do
+        if command -v systemctl &>/dev/null; then
+            if systemctl list-units --type=service --all | grep -q "$SERVICE"; then
+                sudo systemctl stop "$SERVICE"
+                log "Stopped $SERVICE"
+            else
+                log "Skipping $SERVICE (not installed)."
+            fi
+        else
+            log "Skipping service optimizations (systemctl not found)"
+            break
+        fi
+    done
+
+    log "CPU optimization completed."
 }
 
-# Function to enable automatic optimization
-schedule_optimization() {
-    log_action "Scheduling system optimization..."
-    echo -e "${CYAN}Scheduling daily system optimization at 3 AM...${RESET}"
-    (crontab -l 2>/dev/null; echo "0 3 * * * /usr/bin/bash $(realpath $0) --auto") | crontab -
-    log_action "System optimization scheduled."
-    echo -e "${GREEN}Scheduled optimization successfully enabled!${RESET}"
+# Function to enable scheduled optimization
+enable_scheduled_optimization() {
+    log "Enabling scheduled optimization..."
+    
+    if is_docker; then
+        log "Skipping scheduled optimization (running inside Docker)"
+        return
+    fi
+
+    CRON_JOB="0 3 * * * /bin/bash $0 4"
+    (crontab -l 2>/dev/null; echo "$CRON_JOB") | crontab -
+    log "Scheduled optimization enabled (Runs daily at 3 AM)."
 }
 
-# Function to remove scheduled optimization
-remove_schedule() {
-    log_action "Removing scheduled system optimization..."
-    crontab -l | grep -v "$(realpath $0) --auto" | crontab -
-    log_action "Scheduled optimization removed."
-    echo -e "${GREEN}Scheduled optimization disabled.${RESET}"
+# Function to disable scheduled optimization
+disable_scheduled_optimization() {
+    log "Disabling scheduled optimization..."
+    
+    if is_docker; then
+        log "Skipping scheduled optimization (running inside Docker)"
+        return
+    fi
+
+    crontab -l 2>/dev/null | grep -v "$0" | crontab -
+    log "Scheduled optimization disabled."
 }
 
-# Function to display the menu
-show_menu() {
-    echo -e "${CYAN}Linux System Optimizer - Pro Version${RESET}"
+# Main Menu
+while true; do
+    clear
+    echo "Linux System Optimizer - Pro Version"
     echo "1. Clean Junk Files"
     echo "2. Optimize RAM"
     echo "3. Optimize CPU"
@@ -111,24 +125,22 @@ show_menu() {
     echo "5. Enable Scheduled Optimization"
     echo "6. Disable Scheduled Optimization"
     echo "7. Exit"
-    read -p "Choose an option: " choice
-    case $choice in
+    read -p "Choose an option: " option
+
+    case $option in
         1) clean_junk ;;
         2) optimize_ram ;;
         3) optimize_cpu ;;
-        4) clean_junk && optimize_ram && optimize_cpu ;;
-        5) schedule_optimization ;;
-        6) remove_schedule ;;
-        7) exit ;;
-        *) echo -e "${RED}Invalid option!${RESET}" ;;
+        4)
+            clean_junk
+            optimize_ram
+            optimize_cpu
+            ;;
+        5) enable_scheduled_optimization ;;
+        6) disable_scheduled_optimization ;;
+        7) log "Exiting..."; exit 0 ;;
+        *) echo "Invalid option. Please select a valid number." ;;
     esac
-}
 
-# Auto-run mode for scheduled execution
-if [[ "$1" == "--auto" ]]; then
-    clean_junk && optimize_ram && optimize_cpu
-    exit 0
-fi
-
-# Run menu
-show_menu
+    read -p "Press Enter to continue..."
+done
