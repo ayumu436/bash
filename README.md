@@ -47,4 +47,5 @@ got ideas? open an issue or send a pull request.
 
 ## support
 
-if you like it, cool. if not, that’s fine too.
+If you run into issues or have ideas to improve SysBoost, open an issue on GitHub.
+I’ll check it out when I get the chance.
