@@ -1,34 +1,36 @@
-SysBoost - 
+# SysBoost  
 
-SysBoost is a simple but effective system optimizer for Linux. it cleans junk, optimizes ram, and improves cpu performance without bloat.
-it’s written in pure bash, runs fast, and does exactly what it says.
-features
+SysBoost is a simple but effective system optimizer for Linux.  
+It cleans junk, optimizes RAM, and improves CPU performance **without bloat**.  
+It’s written in **pure Bash**, runs fast, and does exactly what it says.  
 
-    junk cleanup – removes package cache and unnecessary system files.
-    ram optimization – Frees up cached memory.
-    cpu optimization – disables unnecessary background services.
-    scheduled optimization – automate cleanups.
-    CLI-Only –
+---
 
-installation
-Arch (AUR)
+##  Features**  
+- **Junk Cleanup** – Removes package cache and unnecessary system files.  
+- **RAM Optimization** – Frees up cached memory.  
+- **CPU Optimization** – Disables unnecessary background services.  
+- **Scheduled Optimization** – Automate cleanups.  
+- **CLI-Only** – No GUI, just a simple script.  
 
-Once it's up on AUR, install it with:
+---
 
+##  Installation**  
+
+###  Arch (AUR)**  
+Once it's up on AUR, install it with:  
+```sh
 yay -S sysboost
 
 Manual Install (For Any Linux Distro)
-
 git clone https://github.com/ayumu436/bash.git sysboost
 cd sysboost
 sudo cp sysboost.sh /usr/bin/sysboost
 sudo chmod +x /usr/bin/sysboost
 
+How to Use
 
-how to use it
-
-run it from the terminal:
-
+Run it from the terminal:
 sysboost --clean              # Clean junk files  
 sysboost --optimize-ram       # Free up memory  
 sysboost --optimize-cpu       # Disable useless background services  
@@ -38,12 +40,14 @@ sysboost --uninstall          # Uninstall SysBoost
 sysboost --version            # Check version  
 sysboost --help               # Show help  
 
+License
 
+MIT. Use it however you want.
 
-MIT, use it however you want.
-contributing
+Contributing
 
-got ideas? open an issue or send a pull request.
-support
+Got ideas? Open an issue or send a pull request.
 
-if you like it, cool. if not, that’s fine too
+Support
+
+If you like it, cool. If not, that’s fine too.
