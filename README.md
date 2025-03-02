@@ -16,12 +16,12 @@ Installation
 Arch (AUR)
 
 Once it's up on AUR, install it with:
-yay -S sysboost
+`yay -S sysboost`sh
 Manual Install (For Any Linux Distro)
-git clone https://github.com/ayumu436/bash.git sysboost  
+`git clone https://github.com/ayumu436/bash.git sysboost  
 cd sysboost  
 sudo cp sysboost.sh /usr/bin/sysboost  
-sudo chmod +x /usr/bin/sysboost  
+sudo chmod +x /usr/bin/sysboost`sh  
 How to Use
 sysboost --clean              # Clean junk files  
 sysboost --optimize-ram       # Free up memory  
