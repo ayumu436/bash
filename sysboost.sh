@@ -1,7 +1,8 @@
 #!/bin/bash
 
 VERSION="1.0.0 (SysBoost)" 
-LOG_FILE="/var/log/linuxoptimizer.log"
+LOG_FILE="$HOME/.sysboost.log"
+
 
 log() {
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $1" | tee -a "$LOG_FILE"
@@ -13,17 +14,18 @@ is_docker() {
 
 show_help() {
     cat << EOF
-Linux System Optimizer - Pro Version
+Linux System Optimizer - 
+
 
 Usage:
-  linuxboot --clean              Clean junk files
-  linuxboot --optimize-ram       Optimize RAM
-  linuxboot --optimize-cpu       Optimize CPU
-  linuxboot --schedule enable    Enable scheduled optimization
-  linuxboot --schedule disable   Disable scheduled optimization
-  linuxboot --uninstall          Remove linuxboot and clean up
-  linuxboot --version            Show version
-  linuxboot --help               Show this help message
+  sysboost --clean              Clean junk files
+  sysboost --optimize-ram       Optimize RAM
+  sysboost --optimize-cpu       Optimize CPU
+  sysboost --schedule enable    Enable scheduled optimization
+  sysboost --schedule disable   Disable scheduled optimization
+  sysboost --uninstall          Remove sysboost and clean up
+  sysboost --version            Show version
+  sysboost --help               Show this help message
 EOF
 }
 
