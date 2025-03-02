@@ -4,7 +4,7 @@ SysBoost is a simple but effective system optimizer for Linux.
 it cleans junk, optimizes RAM, and improves CPU performance without bloat.
 it’s written in pure bash, runs fast, and does exactly what it says.
 
-features
+### features
 
     Junk Cleanup – Removes package cache and unnecessary system files.
     RAM Optimization – Frees up cached memory.
@@ -12,21 +12,21 @@ features
     Scheduled Optimization – Automate cleanups.
     CLI-Only – No GUI, just a simple script.
 
-installation
+### installation
 Arch (AUR)
 
 once it's up on AUR, install it with:
 ```sh
 yay -S sysboost
 ```
-manual install (for any linux distro)
+### manual install (for any linux distro)
 ```sh 
 git clone https://github.com/ayumu436/bash.git sysboost  
 cd sysboost  
 sudo cp sysboost.sh /usr/bin/sysboost  
 sudo chmod +x /usr/bin/sysboost
 ```
-how to use
+### how to use
 ```sh
 sysboost --clean              # Clean junk files  
 sysboost --optimize-ram       # Free up memory  
@@ -37,14 +37,14 @@ sysboost --uninstall          # Uninstall SysBoost
 sysboost --version            # Check version  
 sysboost --help               # Show help  
 ```
-license
+### license
 
 mit. use it however you want.
 
-contributing
+### contributing
 
 got ideas? open an issue or send a pull request.
 
-support
+### support
 
 if you like it, cool. if not, that’s fine too.
