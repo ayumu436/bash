@@ -11,16 +11,13 @@ features
     CLI-Only –
 
 installation
-
-SysBoost works on any Linux distro because it’s just a Bash script.
 Arch (AUR)
 
-once it's up on AUR, install it with:
+Once it's up on AUR, install it with:
 
 yay -S sysboost
 
-
-manual install (For Other Distros)
+Manual Install (For Any Linux Distro)
 
 git clone https://github.com/ayumu436/bash.git sysboost
 cd sysboost
@@ -39,7 +36,7 @@ sysboost --schedule enable    # Enable scheduled cleanup
 sysboost --schedule disable   # Disable scheduled cleanup  
 sysboost --uninstall          # Uninstall SysBoost  
 sysboost --version            # Check version  
-sysboost --help               # Get help  
+sysboost --help               # Show help  
 
 
 
