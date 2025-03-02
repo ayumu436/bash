@@ -27,6 +27,7 @@ sudo cp sysboost.sh /usr/bin/sysboost
 sudo chmod +x /usr/bin/sysboost
 ```
 how to use
+```sh
 sysboost --clean              # Clean junk files  
 sysboost --optimize-ram       # Free up memory  
 sysboost --optimize-cpu       # Disable useless background services  
@@ -35,10 +36,11 @@ sysboost --schedule disable   # Disable scheduled cleanup
 sysboost --uninstall          # Uninstall SysBoost  
 sysboost --version            # Check version  
 sysboost --help               # Show help  
-
+```
 license
 
-MIT. use it however you want.
+mit. use it however you want.
+
 contributing
 
 got ideas? open an issue or send a pull request.
