@@ -24,7 +24,8 @@ Manual Install (For Any Linux Distro)
 git clone https://github.com/ayumu436/bash.git sysboost  
 cd sysboost  
 sudo cp sysboost.sh /usr/bin/sysboost  
-sudo chmod +x /usr/bin/sysboost```  
+sudo chmod +x /usr/bin/sysboost
+```
 How to Use
 sysboost --clean              # Clean junk files  
 sysboost --optimize-ram       # Free up memory  
