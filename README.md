@@ -19,12 +19,14 @@ once it's up on AUR, install it with:
 
 yay -S sysboost
 
+
 manual install (For Other Distros)
 
 git clone https://github.com/ayumu436/bash.git sysboost
 cd sysboost
 sudo cp sysboost.sh /usr/bin/sysboost
 sudo chmod +x /usr/bin/sysboost
+
 
 how to use it
 
